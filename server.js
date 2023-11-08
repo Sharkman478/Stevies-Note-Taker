@@ -19,12 +19,16 @@ app.get('/notes', (req, res) => {
 });
 
 app.get('/api/notes', (req, res) => {
-  console.info(`${req.method} request received for note`);
-  readFromFile('./db/db.json')
-    .then((data) => res.json(JSON.parse(data)))
-    .catch((err) => {
+  const filePath = './db/db.json';
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      console.error('Error:', err);
       res.status(500).json({ error: 'Failed to read notes from the file.' });
-    });
+    } else {
+      const notes = JSON.parse(data);
+      res.json(notes);
+    }
+  });
 });
 
 app.post('/api/notes', (req, res) => {
@@ -36,80 +40,33 @@ app.post('/api/notes', (req, res) => {
       noteText,
       note_id: uuidv4(),
     };
-    readAndAppend(newNote, './db/db.json')
-      .then(() => {
-        res.json(newNote);
-      })
-      .catch((err) => {
-        res.status(500).json({ error: 'Failed to append the note to the file.' });
-      });
+    fs.readFile('./db/db.json', 'utf8', (err, data) => {
+      if (err) {
+        console.error(err);
+      } else {
+        const parsedNotes = JSON.parse(data);
+        parsedNotes.push(newNote);
+        fs.writeFile(
+          './db/db.json',
+          JSON.stringify(parsedNotes, null, 4),
+          (writeErr) => 
+            writeErr
+              ? console.error(writeErr)
+              : console.info('Successfully updated reviews!')
+        )
+      }
+    })
+    const response = {
+      status: 'success',
+      body: newNote,
+    };
+
+    console.log(response);
+    res.status(201).json(response);
   } else {
-    res.status(400).json({ error: 'Missing noteTitle or noteText in the request body.' });
+    res.status(500).json('Error in posting review');
   }
 });
-
-// app.delete('/api/notes/:id', (req, res) => {
-//   const noteId = req.params.id;
-//   deleteNote(noteId, './db/db.json')
-//     .then((message) => {
-//       res.json({ message });
-//     })
-//     .catch((err) => {
-//       res.status(500).json({ error: 'Failed to delete the note from the file.' });
-//     });
-// });
-
-const readFromFile = (filePath) => {
-  return new Promise((resolve, reject) => {
-    fs.readFile(path.join(__dirname, filePath), 'utf8', (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(data);
-      }
-    });
-  });
-};
-
-const readAndAppend = (content, filePath) => {
-  return new Promise((resolve, reject) => {
-    fs.readFile(path.join(__dirname, filePath), 'utf8', (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        const parsedData = JSON.parse(data);
-        parsedData.push(content);
-        fs.writeFile(path.join(__dirname, filePath), JSON.stringify(parsedData, null, 4), (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      }
-    });
-  });
-};
-
-// const deleteNote = (noteId, filePath) => {
-//   return new Promise((resolve, reject) => {
-//     fs.readFile(path.join(__dirname, filePath), 'utf8', (err, data) => {
-//       if (err) {
-//         reject(err);
-//       } else {
-//         let parsedData = JSON.parse(data);
-//         parsedData = parsedData.filter((note) => note.note_id !== noteId);
-//         fs.writeFile(path.join(__dirname, filePath), JSON.stringify(parsedData, null, 4), (err) => {
-//           if (err) {
-//             reject(err);
-//           } else {
-//             resolve(`Note with id ${noteId} has been deleted.`);
-//           }
-//         });
-//       }
-//     });
-//   });
-// };
 
 app.listen(PORT, () => {
   console.log(`App listening at http://localhost:${PORT}`);
