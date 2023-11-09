@@ -5,3 +5,6 @@ Description
 
 Walkthrough Video
 * https://drive.google.com/file/d/18skZHNf7rHL6c2_IuTH4Wsvr1R05J7QV/view
+
+Deployed Repo Link
+* https://sharkman478.github.io/Stevies-Note-Taker/
