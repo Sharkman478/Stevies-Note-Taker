@@ -32,13 +32,15 @@ app.get('/api/notes', (req, res) => {
 });
 
 app.post('/api/notes', (req, res) => {
-  const { noteTitle, noteText } = req.body;
+ var noteText  = req.body.text;
+ var noteTitle = req.body.title;
+  console.log(noteTitle, noteText, "stsuefvusef");
   if (!noteTitle || !noteText) {
     return res.status(400).json({ error: 'Note title and text are required.' });
   }
   const newNote = {
-    noteTitle: req.body.title,
-    noteText: req.body.text,
+    title: req.body.title,
+    text: req.body.text,
     note_id: uuidv4(),
   };
   const filePath = './db/db.json';
